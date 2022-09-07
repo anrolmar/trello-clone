@@ -1,0 +1,10 @@
+#import ../fragments/board.fragment.gql"
+
+mutation attachImageToBoard($id: ID!, $imageId: ID!) {
+  boardUpdate(
+    filter: { id: $id }
+    data: { image: { reconnect: { id: $imageId } } }
+  ) {
+    ...Board
+  }
+}

@@ -1,0 +1,9 @@
+#import ../fragments/label.fragment.gql"
+
+query getLabels {
+  labelsList {
+    items {
+      ...Label
+    }
+  }
+}

@@ -1,0 +1,9 @@
+#import ../fragments/board.fragment.gql"
+
+query getBoards {
+  boardsList {
+    items {
+      ...Board
+    }
+  }
+}

@@ -1,0 +1,6 @@
+mutation addTaskToColumn($data: TaskCreateInput!) {
+  taskCreate(data: $data) {
+    id
+    title
+  }
+}

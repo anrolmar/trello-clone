@@ -1,0 +1,7 @@
+#import ../fragments/label.fragment.gql"
+
+mutation createLabel($data: LabelCreateInput!) {
+  labelCreate(data: $data) {
+    ...Label
+  }
+}

@@ -1,0 +1,8 @@
+fragment Label on Label {
+  id
+  label
+  color
+  board {
+    id
+  }
+}
