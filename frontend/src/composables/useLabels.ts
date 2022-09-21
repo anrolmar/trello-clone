@@ -1,33 +1,56 @@
-import { useBoardsStore, useNotificationsStore } from "@/stores";
-
 import type { Label } from "@/types";
-import createLabelGQLMutation from "@/graphql/mutations/createLabel.mutation.gql";
-import deleteLabelGQLMutation from "@/graphql/mutations/deleteLabel.mutation.gql";
+import createLabelGQLMutation from "@/graphql/mutations/labels/createLabel.mutation.gql";
+import deleteLabelGQLMutation from "@/graphql/mutations/labels/deleteLabel.mutation.gql";
 import { findIndex } from "lodash";
 import { ref } from "vue";
-import updateLabelGQLMutation from "@/graphql/mutations/updateLabel.mutation.gql";
+import updateLabelGQLMutation from "@/graphql/mutations/labels/updateLabel.mutation.gql";
 import { useMutation } from "@vue/apollo-composable";
+import { useNotificationsStore } from "@/stores";
 
 const useLabels = (): any => {
-  const boardsStore = useBoardsStore();
   const notificationsStore = useNotificationsStore();
 
   const labels = ref<Partial<Label>[]>([]);
+  const selectedLabels = ref<Partial<Label>[]>([]);
+
+  const {
+    mutate: createLabelMutation,
+    onError: onErrorCreatingLabel,
+    onDone: onDoneCreatingLabel,
+  } = useMutation(createLabelGQLMutation);
+  onErrorCreatingLabel(() => {
+    notificationsStore.error("Error creating the label");
+  });
+  onDoneCreatingLabel(({ data }) => {
+    labels.value = [...labels.value, data.labelCreate];
+    notificationsStore.success("Label created successfully!");
+  });
+
+  const {
+    mutate: deleteLabelMutation,
+    onError: onErrorDeletingLabel,
+    onDone: onDeletingLabel,
+  } = useMutation(deleteLabelGQLMutation);
+  onErrorDeletingLabel(() =>
+    notificationsStore.error("Error deleting the label")
+  );
+  onDeletingLabel(() =>
+    notificationsStore.success("Label deleted successfully!")
+  );
+
+  const {
+    mutate: updateLabelMutation,
+    onError: onErrorUpdatingLabel,
+    onDone: onUpdatingLabel,
+  } = useMutation(updateLabelGQLMutation);
+  onErrorUpdatingLabel(() =>
+    notificationsStore.error("Error updating the label")
+  );
+  onUpdatingLabel(() =>
+    notificationsStore.success("Label updated successfully!")
+  );
 
   const createLabel = (newLabel: Partial<Label>) => {
-    const {
-      mutate: createLabelMutation,
-      onError: onErrorCreatingLabel,
-      onDone: onDoneCreatingLabel,
-    } = useMutation(createLabelGQLMutation);
-    onErrorCreatingLabel(() => {
-      notificationsStore.error("Error creating the label");
-    });
-    onDoneCreatingLabel(({ data }) => {
-      labels.value = [...labels.value, data.labelCreate];
-      notificationsStore.success("Label created successfully!");
-    });
-
     createLabelMutation({
       data: {
         label: newLabel.label,
@@ -37,36 +60,12 @@ const useLabels = (): any => {
   };
 
   const deleteLabel = ({ id }: { id: string }) => {
-    const {
-      mutate: deleteLabelMutation,
-      onError: onErrorDeletingLabel,
-      onDone: onDeletingLabel,
-    } = useMutation(deleteLabelGQLMutation);
-    onErrorDeletingLabel(() =>
-      notificationsStore.error("Error deleting the label")
-    );
-    onDeletingLabel(() =>
-      notificationsStore.success("Label deleted successfully!")
-    );
-
     deleteLabelMutation({ id });
     const labelIndex = findIndex(labels.value, { id });
     labels.value.splice(labelIndex, 1);
   };
 
   const updateLabel = (label: Partial<Label>) => {
-    const {
-      mutate: updateLabelMutation,
-      onError: onErrorUpdatingLabel,
-      onDone: onUpdatingLabel,
-    } = useMutation(updateLabelGQLMutation);
-    onErrorUpdatingLabel(() =>
-      notificationsStore.error("Error updating the label")
-    );
-    onUpdatingLabel(() =>
-      notificationsStore.success("Label updated successfully!")
-    );
-
     updateLabelMutation({
       data: {
         label: label.label,
@@ -75,49 +74,43 @@ const useLabels = (): any => {
     });
   };
 
-  const updateLabelWithRelationships = (label: Partial<Label>) => {
-    const {
-      mutate: updateLabelMutation,
-      onError: onErrorUpdatingLabel,
-      onDone: onUpdatingLabel,
-    } = useMutation(updateLabelGQLMutation);
-    onErrorUpdatingLabel(() =>
-      notificationsStore.error("Error updating the label")
-    );
-    onUpdatingLabel(() =>
-      notificationsStore.success("Label updated successfully!")
-    );
+  const setBoardToLabel = (
+    labelId: string,
+    boardId: string,
+    remove: boolean
+  ) => {
+    const boardPayload = !remove
+      ? { connect: { id: boardId } }
+      : { disconnect: { id: boardId } };
 
-    const boardPayload = label.board
-      ? { connect: { id: boardsStore.selectedBoard } }
-      : { disconnect: { id: boardsStore.selectedBoard } };
+    updateLabelMutation({
+      data: {
+        board: boardPayload,
+      },
+      filter: { id: labelId },
+    });
+  };
+  const setTaskToLabel = (labelId: string, taskId: string, remove: boolean) => {
+    const taskPayload = !remove
+      ? { connect: { id: taskId } }
+      : { disconnect: { id: taskId } };
 
-    if (label.tasks) {
-      label.tasks.forEach((task) => {
-        updateLabelMutation({
-          data: {
-            board: boardPayload,
-            task: { connect: { id: task.id } },
-          },
-          filter: { id: label.id },
-        });
-      });
-    } else {
-      updateLabelMutation({
-        data: {
-          board: boardPayload,
-        },
-        filter: { id: label.id },
-      });
-    }
+    updateLabelMutation({
+      data: {
+        tasks: taskPayload,
+      },
+      filter: { id: labelId },
+    });
   };
 
   return {
     labels,
+    selectedLabels,
     createLabel,
     deleteLabel,
     updateLabel,
-    updateLabelWithRelationships,
+    setBoardToLabel,
+    setTaskToLabel,
   };
 };
 

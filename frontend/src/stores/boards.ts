@@ -6,6 +6,7 @@ import { findIndex } from "lodash";
 interface BoardState {
   boards: Partial<Board>[];
   tasks: Partial<Task>[];
+  labels: Partial<Label>[];
   selectedBoard?: string;
 }
 
@@ -13,6 +14,7 @@ const useBoardsStore = defineStore("boards", {
   state: (): BoardState => ({
     boards: [],
     tasks: [],
+    labels: [],
     selectedBoard: undefined,
   }),
 

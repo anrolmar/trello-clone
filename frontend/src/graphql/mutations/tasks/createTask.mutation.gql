@@ -1,6 +1,7 @@
+#import ../../fragments/task.fragment.gql"
+
 mutation addTaskToColumn($data: TaskCreateInput!) {
   taskCreate(data: $data) {
-    id
-    title
+    ...Task
   }
 }

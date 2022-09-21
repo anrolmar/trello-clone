@@ -1,0 +1,7 @@
+#import ../../fragments/comment.fragment.gql"
+
+mutation createCommentMutation($data: CommentCreateInput!) {
+  commentCreate(data: $data) {
+    ...Comment
+  }
+}

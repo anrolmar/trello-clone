@@ -1,4 +1,4 @@
-mutation deleteLabel($id: ID!) {
+mutation deleteLabelMutation($id: ID!) {
   labelDelete(filter: { id: $id }, force: true) {
     success
   }

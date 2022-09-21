@@ -33,11 +33,14 @@ const handleUpdateBoard = () => {
 
 const handleAddColumn = () => {
   if (!columns.value) columns.value = [];
-  columns.value.push({
-    id: uuid(),
-    title: "New column",
-    taskIds: [],
-  });
+  columns.value = [
+    ...columns.value,
+    {
+      id: uuid(),
+      title: "New column",
+      taskIds: [],
+    },
+  ];
 
   handleUpdateBoard();
 };

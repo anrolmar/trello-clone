@@ -19,6 +19,7 @@ const emit = defineEmits<{
 
 const labels = ref<Partial<Label>[]>(props.labels);
 const selected = ref<Partial<Label>[]>(props.selected);
+
 const showCreate = ref(false);
 const newLabel = ref<Partial<Label>>({
   label: "",
@@ -54,7 +55,7 @@ const handleToggle = (label: Partial<Label>) => {
     selected.value = selected.value.filter((l) => l.id !== label.id);
     emit("deselect", label);
   } else {
-    selected.value?.push(label);
+    selected.value = [...selected.value, label];
     emit("select", label);
   }
 };

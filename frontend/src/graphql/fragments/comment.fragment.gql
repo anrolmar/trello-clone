@@ -1,0 +1,4 @@
+fragment Comment on Comment {
+  id
+  message
+}

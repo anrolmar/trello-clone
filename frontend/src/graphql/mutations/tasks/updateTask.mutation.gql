@@ -1,0 +1,7 @@
+#import ../../fragments/task.fragment.gql"
+
+mutation updateTaskMutation($data: TaskUpdateInput!, $filter: TaskKeyFilter) {
+  taskUpdate(data: $data, filter: $filter) {
+    ...Task
+  }
+}

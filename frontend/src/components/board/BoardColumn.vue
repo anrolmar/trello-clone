@@ -1,13 +1,11 @@
 <script lang="ts" setup>
 import draggable from "vuedraggable";
 
-import addTaskToColumnMutation from "@/graphql/mutations/addTaskToColumn.mutation.gql";
-import { useBoardsStore, useNotificationsStore } from "@/stores";
+import { useTasks } from "@/composables";
+import { useBoardsStore } from "@/stores";
 import type { Column } from "@/types";
-import { useMutation } from "@vue/apollo-composable";
 import { cloneDeep } from "lodash-es";
 import { nextTick, ref } from "vue";
-import TaskCreator from "./TaskCreator.vue";
 
 const props = defineProps<{
   column: Column;
@@ -17,35 +15,13 @@ const emit = defineEmits<{
   (e: "update", value: Column): void;
 }>();
 
-const notificationsStore = useNotificationsStore();
 const boardsStore = useBoardsStore();
+const { createTask } = useTasks();
 
 const column = ref<Column>(cloneDeep(props.column));
-const {
-  mutate: addTask,
-  onDone: onAddTaskDone,
-  onError: onAddTaskError,
-} = useMutation(addTaskToColumnMutation);
-onAddTaskDone(({ data }) => {
-  column.value.taskIds.push(data.taskCreate.id);
-  boardsStore.tasks = [...boardsStore.tasks, data.taskCreate];
 
-  emit("update", column.value);
-});
-onAddTaskError(() => notificationsStore.error("Error creating the task"));
-
-const addTaskToColumn = (taskToAdd: string) => {
-  addTask({
-    data: {
-      title: taskToAdd,
-      board: {
-        connect: {
-          id: boardsStore.selectedBoard,
-        },
-      },
-    },
-  });
-};
+const addTaskToColumn = (taskToAdd: string) =>
+  createTask(taskToAdd, emit, column);
 
 const titleInput = ref<HTMLInputElement | null>(null);
 const titleValue = ref<string>(column.value.title || "");

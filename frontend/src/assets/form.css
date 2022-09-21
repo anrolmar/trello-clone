@@ -1,0 +1,10 @@
+.form-label {
+  @apply font-bold w-full;
+}
+.form-label label {
+  @apply ml-1;
+}
+
+.field {
+  @apply mt-1 w-full;
+}

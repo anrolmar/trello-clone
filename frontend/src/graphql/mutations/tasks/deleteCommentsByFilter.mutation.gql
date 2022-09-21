@@ -1,0 +1,5 @@
+mutation deleteCommentsByFilterMutation($filter: CommentFilter!) {
+  commentDeleteByFilter(filter: $filter) {
+    success
+  }
+}

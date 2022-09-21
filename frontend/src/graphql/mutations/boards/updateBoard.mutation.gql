@@ -1,0 +1,7 @@
+#import ../../fragments/board.fragment.gql"
+
+mutation updateBoardMutation($data: BoardUpdateInput!) {
+  boardUpdate(data: $data) {
+    ...Board
+  }
+}

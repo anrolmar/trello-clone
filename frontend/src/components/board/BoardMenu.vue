@@ -1,6 +1,5 @@
 <script lang="ts">
-import attachImageToBoardMutation from "@/graphql/mutations/attachImageToBoard.mutation.gql";
-import labelsQuery from "@/graphql/queries/labels.query.gql";
+import attachImageToBoardMutation from "@/graphql/mutations/boards/attachImageToBoard.mutation.gql";
 import { useBoardsStore, useNotificationsStore } from "@/stores";
 import type { Board, Label } from "@/types";
 import { Button as KButton } from "@progress/kendo-vue-buttons";
@@ -11,8 +10,7 @@ import { ref } from "vue";
 
 <script lang="ts" setup>
 import { useLabels } from "@/composables";
-import { useMutation, useQuery } from "@vue/apollo-composable";
-import { clone } from "lodash-es";
+import { useMutation } from "@vue/apollo-composable";
 import AppImageDropZone from "../ui/AppImageDropZone.vue";
 
 const props = defineProps<{
@@ -26,28 +24,14 @@ const emit = defineEmits<{
 
 const boardsStore = useBoardsStore();
 const notificationsStore = useNotificationsStore();
-const {
-  labels,
-  createLabel,
-  deleteLabel,
-  updateLabel,
-  updateLabelWithRelationships,
-} = useLabels();
+const { createLabel, deleteLabel, updateLabel, setBoardToLabel } = useLabels();
 
+const labels: Partial<Label>[] = boardsStore.labels;
 const selectedLabels = ref<Partial<Label>[]>(props.board.labels || []);
 
 const show = ref<boolean>(false);
 const menu = ref(null);
 onClickOutside(menu, () => setTimeout(() => (show.value = false), 2));
-
-const { onError: onErrorGettingLabels, onResult: onResultGettingLabels } =
-  useQuery(labelsQuery, {
-    id: boardsStore.selectedBoard,
-  });
-onResultGettingLabels(({ data }) => {
-  labels.value = data.labelsList?.items || [];
-});
-onErrorGettingLabels(() => notificationsStore.error("Error loading labels"));
 
 const {
   mutate: attachImageToBoard,
@@ -74,17 +58,13 @@ const handleDeleteLabel = (label: Partial<Label>) => deleteLabel(label);
 const handleUpdateLabel = (label: Partial<Label>) => updateLabel(label);
 
 const handleAddLabelToBoard = (label: Partial<Label>) => {
-  const labelCloned = clone(label);
-  labelCloned.board = props.board;
-  updateLabel(labelCloned);
-  updateLabelWithRelationships(labelCloned);
+  updateLabel(label);
+  setBoardToLabel(label.id, boardsStore.selectedBoard, false);
 };
 
 const handleRemoveLabelFromBoard = (label: Partial<Label>) => {
-  const labelCloned = clone(label);
-  labelCloned.board = undefined;
-  updateLabel(labelCloned);
-  updateLabelWithRelationships(labelCloned);
+  updateLabel(label);
+  setBoardToLabel(label.id, boardsStore.selectedBoard, true);
 };
 </script>
 

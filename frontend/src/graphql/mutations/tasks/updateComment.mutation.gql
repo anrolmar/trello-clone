@@ -1,0 +1,10 @@
+#import ../../fragments/comment.fragment.gql"
+
+mutation updateCommentMutation(
+  $data: CommentUpdateInput!
+  $filter: CommentKeyFilter
+) {
+  commentUpdate(data: $data, filter: $filter) {
+    ...Comment
+  }
+}

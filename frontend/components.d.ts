@@ -17,13 +17,14 @@ declare module '@vue/runtime-core' {
     BoardColumn: typeof import('./src/components/board/BoardColumn.vue')['default']
     BoardDragDrop: typeof import('./src/components/board/BoardDragDrop.vue')['default']
     BoardMenu: typeof import('./src/components/board/BoardMenu.vue')['default']
+    Comments: typeof import('./src/components/task/Comments.vue')['default']
     Drawer: typeof import('./src/components/navigation/Drawer.vue')['default']
     NavBar: typeof import('./src/components/navigation/NavBar.vue')['default']
     Notifications: typeof import('./src/components/notification/Notifications.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    TaskCard: typeof import('./src/components/board/TaskCard.vue')['default']
-    TaskCreator: typeof import('./src/components/board/TaskCreator.vue')['default']
+    TaskCard: typeof import('./src/components/task/TaskCard.vue')['default']
+    TaskCreator: typeof import('./src/components/task/TaskCreator.vue')['default']
   }
 }
 

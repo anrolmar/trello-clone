@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { useBoards } from "@/composables";
-import boardsQuery from "@/graphql/queries/boards.query.gql";
-import tasksQuery from "@/graphql/queries/tasks.query.gql";
+import boardsQuery from "@/graphql/queries/boards/boards.query.gql";
+import labelsQuery from "@/graphql/queries/labels/labels.query.gql";
+import tasksQuery from "@/graphql/queries/tasks/tasks.query.gql";
 import { useBoardsStore, useNotificationsStore } from "@/stores";
 import type { Board } from "@/types";
 import { useQuery } from "@vue/apollo-composable";
@@ -26,6 +27,13 @@ onGetTasksResult(
   ({ data }) => (boardsStore.tasks = data.tasksList?.items || [])
 );
 onGetTasksError(() => notificationsStore.error("Error loading tasks"));
+
+const { onError: onErrorGettingLabels, onResult: onResultGettingLabels } =
+  useQuery(labelsQuery);
+onResultGettingLabels(
+  ({ data }) => (boardsStore.labels = data.labelsList?.items || [])
+);
+onErrorGettingLabels(() => notificationsStore.error("Error loading labels"));
 
 const handleCreateBoard = () => {
   const newBoard: Partial<Board> = {

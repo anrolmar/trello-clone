@@ -1,4 +1,4 @@
-#import ../fragments/board.fragment.gql"
+#import ../../fragments/board.fragment.gql"
 
 mutation attachImageToBoard($id: ID!, $imageId: ID!) {
   boardUpdate(

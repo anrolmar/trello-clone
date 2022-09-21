@@ -1,0 +1,10 @@
+#import ../../fragments/label.fragment.gql"
+
+mutation updateLabelMutation(
+  $data: LabelUpdateInput!
+  $filter: LabelKeyFilter
+) {
+  labelUpdate(data: $data, filter: $filter, force: true) {
+    ...Label
+  }
+}
