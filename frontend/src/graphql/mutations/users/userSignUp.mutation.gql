@@ -1,0 +1,7 @@
+#import ../../fragments/user.fragment.gql"
+
+mutation userSignUp($user: UserCreateInput!, $authProfileId: ID) {
+  userSignUpWithToken(user: $user, authProfileId: $authProfileId) {
+    ...User
+  }
+}

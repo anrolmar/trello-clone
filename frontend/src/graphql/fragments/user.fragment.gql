@@ -1,0 +1,17 @@
+fragment User on User {
+  id
+  email
+  firstName
+  lastName
+  team {
+    items {
+      id
+      name
+    }
+  }
+  roles {
+    items {
+      name
+    }
+  }
+}
