@@ -1,4 +1,4 @@
-import type { Board, Task } from "@/types";
+import type { Board, Label, Task } from "@/types";
 
 import { defineStore } from "pinia";
 import { findIndex } from "lodash";
