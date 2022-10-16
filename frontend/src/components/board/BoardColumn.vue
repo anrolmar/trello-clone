@@ -5,7 +5,7 @@ import { useTasks } from "@/composables";
 import { useBoardsStore } from "@/stores";
 import type { Column } from "@/types";
 import { cloneDeep } from "lodash-es";
-import { nextTick, ref } from "vue";
+import { computed, ref } from "vue";
 
 const props = defineProps<{
   column: Column;
@@ -19,28 +19,14 @@ const boardsStore = useBoardsStore();
 const { createTask } = useTasks();
 
 const column = ref<Column>(cloneDeep(props.column));
+const columnTitle = computed(() => column.value.title);
 
 const addTaskToColumn = (taskToAdd: string) =>
   createTask(taskToAdd, emit, column);
 
-const titleInput = ref<HTMLInputElement | null>(null);
-const titleValue = ref<string>(column.value.title || "");
-const titleInputVisible = ref<boolean>(false);
-
-const updateTitle = () => {
-  titleInputVisible.value = true;
-  nextTick(() => titleInput.value?.focus());
-};
-
-const handleEnter = () => {
-  column.value.title = titleValue.value;
-  titleInputVisible.value = false;
+const handleUpdate = (value: string) => {
+  column.value.title = value;
   emit("update", column.value);
-};
-
-const handleCancel = () => {
-  titleValue.value = column.value.title || "";
-  titleInputVisible.value = false;
 };
 
 const handleChangeColumn = (event: any) => {
@@ -62,16 +48,10 @@ const handleChangeColumn = (event: any) => {
 <template>
   <div class="column">
     <div>
-      <h2 v-if="!titleInputVisible" @click="updateTitle">{{ column.title }}</h2>
-      <input
-        v-else
-        type="text"
-        ref="titleInput"
-        v-model="titleValue"
-        class="w-full"
-        @keypress.enter="handleEnter"
-        @keydown.esc="handleCancel"
-        @blur="handleCancel"
+      <AppPageHeading
+        heading="h2"
+        :title="columnTitle"
+        @update="handleUpdate"
       />
       <draggable
         :list="column.taskIds"

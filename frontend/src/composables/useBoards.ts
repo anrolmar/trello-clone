@@ -9,7 +9,7 @@ import updateBoardGQLMutation from "@/graphql/mutations/boards/updateBoard.mutat
 import { useMutation } from "@vue/apollo-composable";
 import { useRouter } from "vue-router";
 
-const useBoards = (): any => {
+const useBoards = () => {
   const router = useRouter();
   const notificationsStore = useNotificationsStore();
   const boardsStore = useBoardsStore();

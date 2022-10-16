@@ -1,42 +1,28 @@
 <script setup lang="ts">
-import BoardDragDrop from "@/components/board/BoardDragDrop.vue";
 import { useBoards } from "@/composables";
 import { useBoardsStore } from "@/stores";
 import type { Board } from "@/types";
-import { nextTick, ref } from "vue";
+import { computed } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
 const { getBoardById } = useBoardsStore();
 
-const { board, deleteBoard, updateBoard } = useBoards();
+const { deleteBoard, updateBoard } = useBoards();
+let { board } = useBoards();
 
 const boardId = route.params.id as string;
-board.value = ref<Partial<Board>>(getBoardById(boardId));
+board.value = getBoardById(boardId);
 
-const titleInput = ref<HTMLInputElement | null>(null);
-const titleValue = ref<string>(board.value?.title || "");
-const titleInputVisible = ref<boolean>(false);
+const boardTitle = computed(() => board.value?.title);
 
-const updateTitle = () => {
-  titleInputVisible.value = true;
-  nextTick(() => titleInput.value?.focus());
-};
-
-const handleEnter = () => {
+const handleUpdate = (value: string) => {
   const newBoard: Partial<Board> = {
     id: boardId,
-    title: titleValue.value,
+    title: value,
   };
 
   updateBoard(newBoard);
-
-  titleInputVisible.value = false;
-};
-
-const handleCancel = () => {
-  titleValue.value = board.value.title || "";
-  titleInputVisible.value = false;
 };
 
 const handleDeleteBoard = async () => {
@@ -49,19 +35,7 @@ const handleDeleteBoard = async () => {
 <template>
   <div>
     <div class="flex">
-      <AppPageHeading v-if="!titleInputVisible" @click="updateTitle">{{
-        board.title
-      }}</AppPageHeading>
-      <input
-        v-else
-        type="text"
-        ref="titleInput"
-        class="mr-5 mb-5 text-3xl w-full"
-        v-model="titleValue"
-        @keypress.enter="handleEnter"
-        @keydown.esc="handleCancel"
-        @blur="handleCancel"
-      />
+      <AppPageHeading heading="h1" :title="boardTitle" @update="handleUpdate" />
       <div>
         <BoardMenu :board="board" @deleteBoard="handleDeleteBoard" />
       </div>
