@@ -1,5 +1,7 @@
-import gql from "graphql-tag";
+import type { FileCreatePayload, FileUploadPayload } from "@/graphql/payloads";
 import { useMutation, useQuery } from "@vue/apollo-composable";
+
+import gql from "graphql-tag";
 
 const IMAGE_UPLOAD_QUERY = gql`
   query {
@@ -21,15 +23,19 @@ const FILE_CREATE_MUTATION = gql`
 `;
 
 export function useStorage() {
-  const { result } = useQuery(IMAGE_UPLOAD_QUERY);
-  const { mutate: createFileIn8base } = useMutation(FILE_CREATE_MUTATION);
+  const { result } = useQuery<FileUploadPayload>(IMAGE_UPLOAD_QUERY);
+  const { mutate: createFileIn8base } = useMutation<any, FileCreatePayload>(
+    FILE_CREATE_MUTATION
+  );
 
   async function uploadAsset(file: File) {
-    if (!result.value || !result.value.fileUploadInfo) {
+    if (!result.value) {
       throw new Error("File Upload info not yet available");
     }
+
+    const { apiKey, policy, signature, path } = result.value.fileUploadInfo;
     const res = await fetch(
-      `https://www.filestackapi.com/api/store/S3?key=${result.value.fileUploadInfo.apiKey}&policy=${result.value.fileUploadInfo.policy}&signature=${result.value.fileUploadInfo.signature}&path=${result.value.fileUploadInfo.path}`,
+      `https://www.filestackapi.com/api/store/S3?key=${apiKey}&policy=${policy}&signature=${signature}&path=${path}`,
       {
         method: "POST",
         headers: {
@@ -38,10 +44,13 @@ export function useStorage() {
         body: file,
       }
     );
-    const data = await res.json();
+    const { url, filename }: { url: string; filename: string } =
+      await res.json();
+
+    const fileId = url.split("/")[url.split("/").length - 1];
     return createFileIn8base({
-      fileId: data.url.split("/").at(-1),
-      filename: data.filename,
+      fileId,
+      filename,
     });
   }
   return {

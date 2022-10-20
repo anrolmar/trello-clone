@@ -7,6 +7,10 @@ export default {
 <script lang="ts" setup>
 import AppLabelsPicker from "@/components/ui/AppLabelsPicker.vue";
 import { useLabels, useTasks } from "@/composables";
+import type {
+  GetTaskByIdPayload,
+  TaskResponsePayload,
+} from "@/graphql/payloads";
 import taskByIdQuery from "@/graphql/queries/tasks/taskById.query.gql";
 import { useBoardsStore, useNotificationsStore } from "@/stores";
 import type { Comment, Label, Task } from "@/types";
@@ -37,9 +41,6 @@ const {
   updateLabel,
   setTaskToLabel,
 } = useLabels();
-let { labels } = useLabels();
-
-labels = boardsStore.labels;
 
 const { toTask, saveTask } = useTasks();
 
@@ -49,7 +50,9 @@ const {
   loading,
   onError: onErrorGettingTask,
   onResult: onResultGettingTask,
-} = useQuery(taskByIdQuery, { id: taskId.value });
+} = useQuery<TaskResponsePayload, GetTaskByIdPayload>(taskByIdQuery, {
+  id: taskId.value,
+});
 onErrorGettingTask(() => notificationsStore.error("Error loading the task"));
 onResultGettingTask(({ data }) => {
   task.value = toTask(data.task);
@@ -57,7 +60,8 @@ onResultGettingTask(({ data }) => {
 });
 
 const taskDueAt = computed({
-  get: () => (task.value ? new Date(task.value.dueAt) : new Date()),
+  get: () =>
+    task.value && task.value.dueAt ? new Date(task.value.dueAt) : new Date(),
   set: (value) => {
     if (task.value) task.value.dueAt = value;
   },
@@ -83,7 +87,10 @@ const handleChangeComments = (newComments: Partial<Comment>[]) => {
   if (task.value) task.value.comments = newComments;
 };
 
-const handleSaveTask = () => saveTask(task.value);
+const handleSaveTask = () => {
+  saveTask(task.value);
+  router.push(`/boards/${boardsStore.selectedBoard}`);
+};
 </script>
 
 <template>
@@ -114,7 +121,7 @@ const handleSaveTask = () => saveTask(task.value);
           <span class="font-bold">Add to Card</span>
           <span class="font-bold text-xs mt-2">Task Labels</span>
           <AppLabelsPicker
-            :labels="labels"
+            :labels="boardsStore.labels"
             :selected="selectedLabels"
             @create="handleCreateLabel"
             @delete="handleDeleteLabel"

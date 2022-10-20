@@ -39,7 +39,7 @@ const handleFiles = async (files: FileList | File[] | null) => {
   uploadingToFileStack.value = true;
 
   const result = await uploadAsset(files[0]);
-  emit("upload", result?.data.fileCreate);
+  emit("upload", result?.data.fileCreate.id);
 
   uploadingToFileStack.value = false;
 };

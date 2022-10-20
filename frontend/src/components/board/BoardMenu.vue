@@ -1,16 +1,17 @@
-<script lang="ts">
+<script lang="ts" setup>
+import { useLabels } from "@/composables";
 import attachImageToBoardMutation from "@/graphql/mutations/boards/attachImageToBoard.mutation.gql";
+import type {
+  AttachImagePayload,
+  UpdateBoardResponse,
+} from "@/graphql/payloads";
 import { useBoardsStore, useNotificationsStore } from "@/stores";
 import type { Board, Label } from "@/types";
 import { Button as KButton } from "@progress/kendo-vue-buttons";
 import { Popup as KPopup } from "@progress/kendo-vue-popup";
+import { useMutation } from "@vue/apollo-composable";
 import { onClickOutside } from "@vueuse/core";
 import { ref } from "vue";
-</script>
-
-<script lang="ts" setup>
-import { useLabels } from "@/composables";
-import { useMutation } from "@vue/apollo-composable";
 import AppImageDropZone from "../ui/AppImageDropZone.vue";
 
 const props = defineProps<{
@@ -19,14 +20,12 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "deleteBoard", payload: null): void;
-  (e: "imageUpload", payload: { id: string }): void;
 }>();
 
 const boardsStore = useBoardsStore();
 const notificationsStore = useNotificationsStore();
 const { createLabel, deleteLabel, updateLabel, setBoardToLabel } = useLabels();
 
-const labels: Partial<Label>[] = boardsStore.labels;
 const selectedLabels = ref<Partial<Label>[]>(props.board.labels || []);
 
 const show = ref<boolean>(false);
@@ -38,18 +37,22 @@ const {
   onError: onErrorAttachingImage,
   onDone: onDoneAttachingImage,
   loading: imageLoading,
-} = useMutation(attachImageToBoardMutation);
-onErrorAttachingImage(() => {
+} = useMutation<UpdateBoardResponse, AttachImagePayload>(
+  attachImageToBoardMutation
+);
+onErrorAttachingImage((error) => {
+  console.log("Error", error);
   notificationsStore.error("Error setting board image");
 });
 onDoneAttachingImage(({ data }) => {
-  emit("imageUpload", data.boardUpdate.image);
+  boardsStore.updateBoard(data?.boardUpdate, data?.boardUpdate.id);
+  notificationsStore.success("Board updated successfully!!");
 });
 
 const handleUploadImage = (event: any) => {
   attachImageToBoard({
     id: props.board.id,
-    imageId: event.id,
+    imageId: event,
   });
 };
 
@@ -109,7 +112,7 @@ const handleRemoveLabelFromBoard = (label: Partial<Label>) => {
           </li>
           <li>
             <AppLabelsPicker
-              :labels="labels"
+              :labels="boardsStore.labels"
               :selected="selectedLabels"
               @create="handleCreateLabel"
               @delete="handleDeleteLabel"

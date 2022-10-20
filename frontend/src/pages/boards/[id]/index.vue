@@ -2,17 +2,18 @@
 import { useBoards } from "@/composables";
 import { useBoardsStore } from "@/stores";
 import type { Board } from "@/types";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
-const { getBoardById } = useBoardsStore();
+const { getBoardById, getLabelsByBoard } = useBoardsStore();
 
 const { deleteBoard, updateBoard } = useBoards();
-let { board } = useBoards();
+const board = ref<Partial<Board>>();
 
 const boardId = route.params.id as string;
 board.value = getBoardById(boardId);
+board.value = Object.assign({}, board.value, { labels: getLabelsByBoard() });
 
 const boardTitle = computed(() => board.value?.title);
 

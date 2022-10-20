@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import { useBoards } from "@/composables";
+import type {
+  GetBoardsResponse,
+  GetLabelsPayload,
+  GetTasksPayload,
+} from "@/graphql/payloads";
 import boardsQuery from "@/graphql/queries/boards/boards.query.gql";
 import labelsQuery from "@/graphql/queries/labels/labels.query.gql";
 import tasksQuery from "@/graphql/queries/tasks/tasks.query.gql";
@@ -15,23 +20,23 @@ const {
   loading,
   onError: onGetBoardsError,
   onResult: onGetBoardsResult,
-} = useQuery(boardsQuery);
+} = useQuery<GetBoardsResponse>(boardsQuery);
 onGetBoardsResult(
-  ({ data }) => (boardsStore.boards = data.boardsList?.items || [])
+  ({ data }) => (boardsStore.boards = data.boardsList.items || [])
 );
 onGetBoardsError(() => notificationsStore.error("Error loading boards"));
 
 const { onError: onGetTasksError, onResult: onGetTasksResult } =
-  useQuery(tasksQuery);
+  useQuery<GetTasksPayload>(tasksQuery);
 onGetTasksResult(
-  ({ data }) => (boardsStore.tasks = data.tasksList?.items || [])
+  ({ data }) => (boardsStore.tasks = data.tasksList.items || [])
 );
 onGetTasksError(() => notificationsStore.error("Error loading tasks"));
 
 const { onError: onErrorGettingLabels, onResult: onResultGettingLabels } =
-  useQuery(labelsQuery);
+  useQuery<GetLabelsPayload>(labelsQuery);
 onResultGettingLabels(
-  ({ data }) => (boardsStore.labels = data.labelsList?.items || [])
+  ({ data }) => (boardsStore.labels = data.labelsList.items || [])
 );
 onErrorGettingLabels(() => notificationsStore.error("Error loading labels"));
 

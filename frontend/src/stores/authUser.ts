@@ -1,6 +1,7 @@
 import GET_CURRENT_USER from "@/graphql/queries/auth/currentUser.query.gql";
 import USER_SIGN_UP from "@/graphql/mutations/users/userSignUp.mutation.gql";
 import type { User } from "@/types";
+import type { UserResponsePayload } from "@/graphql/payloads";
 import apolloClient from "@/graphql/ApolloClient";
 import { authClient } from "@/authentication/8baseAuth";
 import { defineStore } from "pinia";
@@ -33,9 +34,7 @@ const useAuthUserStore = defineStore("authUser", {
     async initUser() {
       if (!this.tokenId) return;
       try {
-        const {
-          data: { user },
-        } = await fetchUser(this.tokenId);
+        const { data: user } = await fetchUser(this.tokenId);
         this.user = user;
       } catch (error) {
         console.error("No existing user matching with the token id");
@@ -83,7 +82,7 @@ const fetchUser = async (tokenId: string) => {
     },
   };
 
-  return apolloClient.query({
+  return apolloClient.query<UserResponsePayload, any>({
     query: GET_CURRENT_USER,
     context,
   });

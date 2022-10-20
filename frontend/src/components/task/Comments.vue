@@ -2,7 +2,7 @@
 import type { Comment } from "@/types";
 import { Button as KButton } from "@progress/kendo-vue-buttons";
 import { Editor as KEditor } from "@progress/kendo-vue-editor";
-import { clone } from "lodash-es";
+import { clone, cloneDeep } from "lodash-es";
 import { ref } from "vue";
 
 const props = defineProps<{
@@ -40,7 +40,13 @@ const handleSaveComment = () => {
       { message: commentEditor.value?.getHTML() },
     ];
   } else {
-    comments.value[commentIndex.value].message = commentEditor.value?.getHTML();
+    const updatedComment = cloneDeep(comments.value[commentIndex.value]);
+    updatedComment.message = commentEditor.value?.getHTML();
+    comments.value = [
+      ...comments.value.slice(0, commentIndex.value),
+      updatedComment,
+      ...comments.value.slice(commentIndex.value + 1),
+    ];
   }
   commentEditor.value?.setHTML("");
   commentIndex.value = -1;

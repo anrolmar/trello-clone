@@ -1,4 +1,9 @@
 import type { Column, Comment, Task } from "@/types";
+import type {
+  CommentCreatePayload,
+  CommentDeletePayload,
+  TaskUpdatePayload,
+} from "@/graphql/payloads";
 import { useBoardsStore, useNotificationsStore } from "@/stores";
 
 import type { Ref } from "vue";
@@ -8,6 +13,13 @@ import deleteCommentsByFilterMutationGQL from "@/graphql/mutations/tasks/deleteC
 import updateTaskMutationGQL from "@/graphql/mutations/tasks/updateTask.mutation.gql";
 import { useDateFormat } from "@vueuse/core";
 import { useMutation } from "@vue/apollo-composable";
+
+const toComment = (data: any): Partial<Comment> => {
+  return {
+    message: data.message,
+    task: data.task,
+  };
+};
 
 const useTasks = (comments?: Partial<Comment>[]): any => {
   const notificationsStore = useNotificationsStore();
@@ -19,8 +31,8 @@ const useTasks = (comments?: Partial<Comment>[]): any => {
       title: task.title,
       description: task.description,
       dueAt: task.dueAt,
-      labels: task.labels.items || [],
-      comments: task.comments.items || [],
+      labels: task.labels ? task.labels.items : [],
+      comments: task.comments ? task.comments.items : [],
     };
   };
 
@@ -51,8 +63,10 @@ const useTasks = (comments?: Partial<Comment>[]): any => {
     mutate: createCommentMutation,
     onDone: onDoneCreatingComment,
     onError: onErrorCreatingComment,
-  } = useMutation(createCommentMutationGQL);
-  onDoneCreatingComment(({ data }) => comments?.push(data.commentCreate));
+  } = useMutation<Partial<Comment>, CommentCreatePayload>(
+    createCommentMutationGQL
+  );
+  onDoneCreatingComment(({ data }) => comments?.push(toComment(data)));
   onErrorCreatingComment(() =>
     notificationsStore.error("Error saving the comment")
   );
@@ -75,12 +89,14 @@ const useTasks = (comments?: Partial<Comment>[]): any => {
     mutate: deleteCommentsByFilterMutation,
     onDone: onDoneDeletingComments,
     onError: onErrorDeletingComments,
-  } = useMutation(deleteCommentsByFilterMutationGQL);
+  } = useMutation<any, CommentDeletePayload>(deleteCommentsByFilterMutationGQL);
   onDoneDeletingComments(() =>
     saveComments(taskToSave.comments, taskToSave.id)
   );
-  onErrorDeletingComments(() => {
-    notificationsStore.error("Error deleting the comments");
+  onErrorDeletingComments(({ message }) => {
+    if (message === "Records for current filter not found")
+      saveComments(taskToSave.comments, taskToSave.id);
+    else notificationsStore.error("Error deleting the comments");
   });
   const deleteCommentsByFilter = (taskId?: string) => {
     deleteCommentsByFilterMutation({
@@ -96,7 +112,7 @@ const useTasks = (comments?: Partial<Comment>[]): any => {
     mutate: updateTaskMutation,
     onDone: onDoneUpdatingTask,
     onError: onErrorUpdatingTask,
-  } = useMutation(updateTaskMutationGQL);
+  } = useMutation<any, TaskUpdatePayload>(updateTaskMutationGQL);
   onDoneUpdatingTask(() => {
     deleteCommentsByFilter(taskToSave.id);
     notificationsStore.success("Task updated successfully!!");

@@ -11,8 +11,10 @@ const props = defineProps<{
   board: string;
 }>();
 
-const { board, updateBoard } = useBoards();
+const { updateBoard } = useBoards();
 const boardsStore = useBoardsStore();
+
+const board = ref<Partial<Board>>();
 board.value = boardsStore.getBoardById(props.board);
 boardsStore.selectedBoard = props.board;
 
